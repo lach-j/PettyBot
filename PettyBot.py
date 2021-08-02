@@ -1,5 +1,7 @@
 import os
 import json
+from discord import guild
+from discord.channel import CategoryChannel, TextChannel
 from dotenv import load_dotenv
 
 from lxml import html
@@ -19,6 +21,7 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 DATE_FORMAT = "%Y/%m/%d, %H:%M:%S"
 
 bot = commands.Bot(command_prefix='!')
+categories = {}
 
 
 @bot.event
@@ -26,9 +29,11 @@ async def on_ready():
     print(f"{bot.user.name}#{bot.user.discriminator} is ready")
     print("\n")
     for channel in bot.get_all_channels():
+        if type(channel) == CategoryChannel:
+            categories[channel.name] = channel
         if type(channel) == discord.channel.TextChannel:
-            # if channel.name == "bot-stuff":
-            await channel.send("hi")
+            if channel.name == "bot-stuff":
+                await channel.send("hi")
 
 
 async def check_schedule() -> None:
@@ -224,6 +229,33 @@ async def on_message(message):
     await bot.change_presence(activity=activityvar)
     print("status changed")
     await bot.process_commands(message)
+
+
+@bot.command(name='chanbatch')
+async def chan_batch(ctx, *argv):
+    if len(argv) == 0:
+        await ctx.send("'chanbatch' requires one or more arguments.")
+        return
+    if argv[0] == 'None':
+        cat = None
+    else:
+        if categories.get(argv[0]):
+            cat = categories[argv[0]]
+        else:
+            cat = await ctx.guild.create_category(argv[0])
+            categories[argv[0]] = cat
+        for i in range(int(argv[3]), int(argv[2]) + int(argv[3])):
+            await ctx.guild.create_text_channel(f'{argv[1]} {i}', category=cat)
+        return
+
+
+@bot.command(name='cleanup')
+async def cleanup(ctx):
+    for channel in bot.get_all_channels():
+        if type(channel) == TextChannel:
+            messages = await channel.history(limit=30).flatten()
+            if len(messages) <= 5:
+                await channel.delete()
 
 
 bot.run(TOKEN)
