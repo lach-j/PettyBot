@@ -4,7 +4,7 @@ PettyBot is a Discord bot written in Python that utilises the [discord.py](https
 
 ## Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install PettyBot.
+Use the package manager [pip](https://pip.pypa.io/en/stable/) to install PettyBot requirements.
 
 ```bash
 pip install -r requirements.txt
